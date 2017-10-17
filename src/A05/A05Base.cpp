@@ -1,6 +1,7 @@
 #include <SDL.h>		// Always needs to be included for an SDL app
 #include <SDL_image.h>  //Fons de pantalla-personatge-moviment
 #include <SDL_ttf.h>    //Fonts de text
+#include <SDL_mixer.h>
 
 //Game general information
 #define SCREEN_WIDTH 800
@@ -10,7 +11,16 @@ int main(int, char*[]) {
 
 	// --- INIT ---
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) throw "No es pot inicialitzar SDL subsystems";
+
+	const Uint8 imgFlags{ IMG_INIT_PNG | IMG_INIT_JPG };
+	if (!(IMG_Init(imgFlags)& imgFlags)) throw "Error: SDL_image init";
+
 	if (TTF_Init() != 0) throw "No es pot inicialitzar SDL_ttf";
+
+	const Uint8 mixFlags{ MIX_INIT_MP3 | MIX_INIT_OGG };
+	if (!(Mix_Init(mixFlags)& mixFlags)) throw "Error: SDL_mixer init";
+	
+
 
 	// --- WINDOW ---
 	SDL_Window *window{ SDL_CreateWindow("SDL...", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN) };
@@ -21,9 +31,6 @@ int main(int, char*[]) {
 	if (renderer == nullptr) throw "No es pot inicialitzar SDL_Renderer";
 
 	// --- SPRITES --- (Textures)
-
-	const Uint8 imgFlags{ IMG_INIT_PNG | IMG_INIT_JPG };
-	if (!(IMG_Init(imgFlags)& imgFlags)) throw "Error: SDL_image init";
 
 		//BG -- (Fons de pantalla)
 	SDL_Texture *bgTexture{ IMG_LoadTexture(renderer,"../../res/img/bg.jpg") };
@@ -50,6 +57,16 @@ int main(int, char*[]) {
 	TTF_CloseFont(font);
 
 	// --- AUDIO ---
+
+	if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 1024) == -1) {
+		throw "Unable to initialize SDL_mixer audio system";
+	}
+	Mix_Music *soundtrack{ Mix_LoadMUS("../../res/au/mainTheme.mp3") };
+	if (!soundtrack) throw "Unable to load the Mix_Music soundtrack";
+	Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
+	Mix_PlayMusic(soundtrack, -1);
+
+	//Mix_PlayMusic() - Mix_PlayingMusic() - Mix_PauseMusic() - Mix_ResumeMusic()
 
 	// --- GAME LOOP ---
 	SDL_Event event;
@@ -91,10 +108,12 @@ int main(int, char*[]) {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 
+	Mix_CloseAudio(); 
 
 	// --- QUIT ---
 	IMG_Quit();
 	TTF_Quit();
+	Mix_Quit();
 	SDL_Quit();
 	return 0;
 }
