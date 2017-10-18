@@ -2,10 +2,19 @@
 #include <SDL_image.h>  //Fons de pantalla-personatge-moviment
 #include <SDL_ttf.h>    //Fonts de text
 #include <SDL_mixer.h>
+#include <iostream>
+using namespace std;
 
 //Game general information
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 600
+
+
+bool in_rect(int x, int y, struct SDL_Rect *r) {
+	return (x >= r->x) && (y >= r->y) &&
+		(x < r->x + r->w) && (y < r->y + r->h);
+}
+
 
 int main(int, char*[]) {
 
@@ -40,7 +49,7 @@ int main(int, char*[]) {
 		//Player
 	SDL_Texture *playerTexture{ IMG_LoadTexture(renderer,"../../res/img/kintoun.png") };
 	if (playerTexture == nullptr) throw "No s'han pogut crear les textures";
-	SDL_Rect playerRect{ 0,0, 350, 189 };
+	SDL_Rect playerRect{ 0,0, 350/3, 189/3 };
 	SDL_Rect playerTarget{ 0,0,100,100 };
 
 		// --- Animated Sprite --- (DIJOUS)
@@ -56,6 +65,21 @@ int main(int, char*[]) {
 	SDL_FreeSurface(tmpSurf);
 	TTF_CloseFont(font);
 
+	TTF_Font *font2{ TTF_OpenFont("../../res/ttf/saiyan.ttf", 60) };
+	if (font == nullptr) throw "No es pot inicialitzar the TTF_Font";
+	SDL_Surface *tmpSurf2{ TTF_RenderText_Blended(font2,"Play Music", SDL_Color{ 35,250,0,255 }) };
+	if (tmpSurf == nullptr) throw "Unable to create the SDL text surface";
+	SDL_Texture *playMusicTexture{ SDL_CreateTextureFromSurface(renderer, tmpSurf2) };
+	SDL_Rect textPlayMusicRect{ 260,275,tmpSurf2->w, tmpSurf2->h};
+	SDL_FreeSurface(tmpSurf2);
+
+	SDL_Surface *tmpSurf3{ TTF_RenderText_Blended(font2,"Stop Music", SDL_Color{ 255,15,0,255 }) };
+	if (tmpSurf == nullptr) throw "Unable to create the SDL text surface";
+	SDL_Texture *stopMusicTexture{ SDL_CreateTextureFromSurface(renderer, tmpSurf3) };
+	SDL_Rect textStopMusicRect{ 260,350,tmpSurf3->w, tmpSurf3->h };
+	SDL_FreeSurface(tmpSurf2);
+	TTF_CloseFont(font);
+
 	// --- AUDIO ---
 
 	if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 1024) == -1) {
@@ -64,7 +88,7 @@ int main(int, char*[]) {
 	Mix_Music *soundtrack{ Mix_LoadMUS("../../res/au/mainTheme.mp3") };
 	if (!soundtrack) throw "Unable to load the Mix_Music soundtrack";
 	Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
-	Mix_PlayMusic(soundtrack, -1);
+	//Mix_PlayMusic(soundtrack, -1);
 
 	//Mix_PlayMusic() - Mix_PlayingMusic() - Mix_PauseMusic() - Mix_ResumeMusic()
 
@@ -79,14 +103,22 @@ int main(int, char*[]) {
 			case SDL_KEYDOWN:	if (event.key.keysym.sym == SDLK_ESCAPE) isRunning = false; break;
 			case SDL_MOUSEMOTION: //playerRect.x = event.motion.x - playerRect.w/2; playerRect.y = event.motion.y - playerRect.h/2;
 				playerTarget.x = event.motion.x - playerRect.w / 2; playerTarget.y = event.motion.y - playerRect.h / 2; break;
+			case SDL_MOUSEBUTTONDOWN: if (in_rect(playerRect.x,playerRect.y, &textPlayMusicRect) == true) {
+										Mix_PlayMusic(soundtrack, -1);
+										} 
+									  if (in_rect(playerRect.x, playerRect.y, &textStopMusicRect) == true) {
+										  Mix_PauseMusic();
+									  }
+									  
+									  break;
 			default:;
 			}
 		}
 
 		// UPDATE
 			//Interpolació vector moviment -- SMOOTH
-		playerRect.x += (playerTarget.x - playerRect.x) / 10;
-		playerRect.y += (playerTarget.y - playerRect.y) / 10;
+		playerRect.x += (playerTarget.x - playerRect.x) / 6;
+		playerRect.y += (playerTarget.y - playerRect.y) / 6;
 
 		// DRAW
 		SDL_RenderClear(renderer);
@@ -96,6 +128,8 @@ int main(int, char*[]) {
 
 		SDL_RenderCopy(renderer, bgTexture, nullptr, &bgRect);
 		SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
+		SDL_RenderCopy(renderer, playMusicTexture, nullptr, &textPlayMusicRect);
+		SDL_RenderCopy(renderer, stopMusicTexture, nullptr, &textStopMusicRect);
 		SDL_RenderCopy(renderer, playerTexture, nullptr, &playerRect);
 		SDL_RenderPresent(renderer);
 
@@ -104,6 +138,8 @@ int main(int, char*[]) {
 	// --- DESTROY ---
 	SDL_DestroyTexture(bgTexture);
 	SDL_DestroyTexture(textTexture);
+	SDL_DestroyTexture(playMusicTexture);
+	SDL_DestroyTexture(stopMusicTexture);
 	SDL_DestroyTexture(playerTexture);	
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
