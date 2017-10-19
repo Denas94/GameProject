@@ -65,41 +65,42 @@ int main(int, char*[]) {
 	if (tmpSurf == nullptr) throw "Unable to create the SDL text surface";
 	SDL_Texture *textTexture{ SDL_CreateTextureFromSurface(renderer,tmpSurf) };
 	SDL_Rect textRect{ 100,50,tmpSurf->w, tmpSurf->h };
-	SDL_FreeSurface(tmpSurf);
+
 	TTF_CloseFont(font);
 
 		//PlayMusic1
 	TTF_Font *font2{ TTF_OpenFont("../../res/ttf/saiyan.ttf", 60) };
 	if (font == nullptr) throw "No es pot inicialitzar the TTF_Font";
-	SDL_Surface *tmpSurf2{ TTF_RenderText_Blended(font2,"Play Music", SDL_Color{ 35,250,0,255 }) };
+	 tmpSurf = TTF_RenderText_Blended(font2,"Play Music", SDL_Color{ 35,250,0,255 }) ;
 	if (tmpSurf == nullptr) throw "Unable to create the SDL text surface";
-	SDL_Texture *playMusicTexture{ SDL_CreateTextureFromSurface(renderer, tmpSurf2) };
-	SDL_Rect textPlayMusicRect{ 260,275,tmpSurf2->w, tmpSurf2->h};
-	SDL_FreeSurface(tmpSurf2);
+	SDL_Texture *playMusicTexture{ SDL_CreateTextureFromSurface(renderer, tmpSurf) };
+	SDL_Rect textPlayMusicRect{ 260,275,tmpSurf->w, tmpSurf->h};
+	
 		//PlayMusic2
-	SDL_Surface *tmpSurf5{ TTF_RenderText_Blended(font2,"Play Music", SDL_Color{ 0,0,255,255 }) };
+	tmpSurf = TTF_RenderText_Blended(font2,"Play Music", SDL_Color{ 0,0,255,255 }) ;
 	if (tmpSurf == nullptr) throw "Unable to create the SDL text surface";
-	SDL_Texture *playMusicTexture2{ SDL_CreateTextureFromSurface(renderer, tmpSurf5) };
-	SDL_Rect textPlayMusicRect2{ 260,275,tmpSurf5->w, tmpSurf5->h };
-	SDL_FreeSurface(tmpSurf5);
+	SDL_Texture *playMusicTexture2{ SDL_CreateTextureFromSurface(renderer, tmpSurf) };
+	SDL_Rect textPlayMusicRect2{ 260,275,tmpSurf->w, tmpSurf->h };
+	
 
 		//StopMusic
-	SDL_Surface *tmpSurf3{ TTF_RenderText_Blended(font2,"Stop Music", SDL_Color{ 255,15,0,255 }) };
+	tmpSurf = TTF_RenderText_Blended(font2,"Stop Music", SDL_Color{ 255,15,0,255 }) ;
 	if (tmpSurf == nullptr) throw "Unable to create the SDL text surface";
-	SDL_Texture *stopMusicTexture{ SDL_CreateTextureFromSurface(renderer, tmpSurf3) };
-	SDL_Rect textStopMusicRect{ 260,350,tmpSurf3->w, tmpSurf3->h };
-	SDL_FreeSurface(tmpSurf2);
+	SDL_Texture *stopMusicTexture{ SDL_CreateTextureFromSurface(renderer, tmpSurf) };
+	SDL_Rect textStopMusicRect{ 260,350,tmpSurf->w, tmpSurf->h };
+	
 		//StopMusic2
-	SDL_Surface *tmpSurf4{ TTF_RenderText_Blended(font2,"Stop Music", SDL_Color{ 255,255,0,255 }) };
+	tmpSurf = TTF_RenderText_Blended(font2,"Stop Music", SDL_Color{ 255,255,0,255 }) ;
 	if (tmpSurf == nullptr) throw "Unable to create the SDL text surface";
-	SDL_Texture *stopMusicTexture2{ SDL_CreateTextureFromSurface(renderer, tmpSurf4) };
-	SDL_Rect textStopMusicRect2{ 260,350,tmpSurf4->w, tmpSurf4->h };
-	SDL_FreeSurface(tmpSurf4);
-	TTF_CloseFont(font);
+	SDL_Texture *stopMusicTexture2{ SDL_CreateTextureFromSurface(renderer, tmpSurf) };
+	SDL_Rect textStopMusicRect2{ 260,350,tmpSurf->w, tmpSurf->h };
+	SDL_FreeSurface(tmpSurf);
+	TTF_CloseFont(font2);
 
 	// --- AUDIO ---
 
-	if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 1024) == -1) {
+	if (
+		Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 1024) == -1) {
 		throw "Unable to initialize SDL_mixer audio system";
 	}
 	Mix_Music *soundtrack{ Mix_LoadMUS("../../res/au/mainTheme.mp3") };
