@@ -107,25 +107,27 @@ int main(int, char*[]) {
 	if (!soundtrack) throw "Unable to load the Mix_Music soundtrack";
 	Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
 	
+	int posX, posY;
+	bool click = false;
 
 	// --- GAME LOOP ---
 	SDL_Event event;
 	bool isRunning = true;
 	while (isRunning){
+		click = false;
 		// HANDLE EVENTS
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 			case SDL_QUIT:		isRunning = false; break;
 			case SDL_KEYDOWN:	if (event.key.keysym.sym == SDLK_ESCAPE) isRunning = false; break;
 			case SDL_MOUSEMOTION: //playerRect.x = event.motion.x - playerRect.w/2; playerRect.y = event.motion.y - playerRect.h/2;
-				playerTarget.x = event.motion.x - playerRect.w / 2; playerTarget.y = event.motion.y - playerRect.h / 2; break;
-			case SDL_MOUSEBUTTONDOWN: if (in_rect(playerRect.x,playerRect.y, &textPlayMusicRect) == true) {
-										Mix_PlayMusic(soundtrack, -1);
-										} 
-									  if (in_rect(playerRect.x, playerRect.y, &textStopMusicRect) == true) {
-										  Mix_PauseMusic();
-									  }
-									  
+							playerTarget.x = event.motion.x - playerRect.w / 2; playerTarget.y = event.motion.y - playerRect.h / 2;
+							posX = event.motion.x; posY = event.motion.y;
+							
+							break;
+
+			case SDL_MOUSEBUTTONDOWN: 
+				click = true;
 									  break;
 			default:;
 			}
@@ -135,40 +137,49 @@ int main(int, char*[]) {
 			//Interpolació vector moviment -- SMOOTH
 		playerRect.x += (playerTarget.x - playerRect.x) / 6;
 		playerRect.y += (playerTarget.y - playerRect.y) / 6;
+		if (click) {
+			if (in_rect(posX, posY, &textPlayMusicRect)) {
+				Mix_PlayMusic(soundtrack, -1);
+			}
+			if (in_rect(posX, posY, &textStopMusicRect)) {
+				Mix_PauseMusic();
+			}
+		}
 		
-		if (in_rect(playerRect.x, playerRect.y, &textPlayMusicRect) == true) {
-			onPlayMusic = true;
-		}
-		else {
-			onPlayMusic = false;
-		}
-		if (in_rect(playerRect.x, playerRect.y, &textStopMusicRect) == true) {
-			onStopMusic = true;
-		}
-		else {
-			onStopMusic = false;
-		}
-
+		
 		// DRAW
 		SDL_RenderClear(renderer);
-			//Background
-		
-			//Animated Sprite
 
+		//BG + Titol
 		SDL_RenderCopy(renderer, bgTexture, nullptr, &bgRect);
 		SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
-		if (onPlayMusic) {
+
+		if (in_rect(posX, posY, &textPlayMusicRect)) {
+					//onPlayMusic = true;
 			SDL_RenderCopy(renderer, playMusicTexture2, nullptr, &textPlayMusicRect2);
 		}
 		else {
+			//onPlayMusic = false;
 			SDL_RenderCopy(renderer, playMusicTexture, nullptr, &textPlayMusicRect);
 		}
-		if (onStopMusic) {
+		if (in_rect(posX, posY, &textStopMusicRect)) {
+			//onStopMusic = true;
 			SDL_RenderCopy(renderer, stopMusicTexture2, nullptr, &textStopMusicRect2);
 		}
 		else {
+			//onStopMusic = false;
 			SDL_RenderCopy(renderer, stopMusicTexture, nullptr, &textStopMusicRect);
 		}
+
+
+		
+		
+			//Animated Sprite
+
+		
+		
+		
+
 		SDL_RenderCopy(renderer, playerTexture, nullptr, &playerRect);
 		SDL_RenderPresent(renderer);
 
