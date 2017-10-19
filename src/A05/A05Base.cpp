@@ -3,6 +3,7 @@
 #include <SDL_ttf.h>    //Fonts de text
 #include <SDL_mixer.h>
 #include <iostream>
+#include <time.h>
 using namespace std;
 
 //Game general information
@@ -124,6 +125,13 @@ int main(int, char*[]) {
 	int posY = 0;
 	bool click = false;
 
+
+	// --- TIME ---
+	clock_t lastTime = clock();
+	float timeDown = 10;
+	float deltaTime = 0;
+
+
 	// --- GAME LOOP ---
 	SDL_Event event;
 	bool isRunning = true;
@@ -154,6 +162,13 @@ int main(int, char*[]) {
 				playerRect.x = 0;
 			}
 		}
+
+		//TIME
+		deltaTime = (clock() - lastTime);
+		lastTime = clock();
+		deltaTime /= CLOCKS_PER_SEC;
+		timeDown -= deltaTime;
+		cout << timeDown << endl;
 
 			//Interpolació vector moviment -- SMOOTH
 
