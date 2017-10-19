@@ -8,6 +8,7 @@ using namespace std;
 //Game general information
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 600
+#define FPS 60
 
 
 bool in_rect(int x, int y, struct SDL_Rect *r) {
@@ -15,8 +16,7 @@ bool in_rect(int x, int y, struct SDL_Rect *r) {
 		(x < r->x + r->w) && (y < r->y + r->h);
 }
 
-bool onPlayMusic = false;
-bool onStopMusic = false;
+
 
 int main(int, char*[]) {
 
@@ -48,13 +48,26 @@ int main(int, char*[]) {
 	if (bgTexture == nullptr) throw "No s'han pogut crear les textures";
 	SDL_Rect bgRect{ 0,0, SCREEN_WIDTH, SCREEN_HEIGHT };
 
-		//Player
-	SDL_Texture *playerTexture{ IMG_LoadTexture(renderer,"../../res/img/kintoun.png") };
-	if (playerTexture == nullptr) throw "No s'han pogut crear les textures";
-	SDL_Rect playerRect{ 0,0, 350/3, 189/3 };
-	SDL_Rect playerTarget{ 0,0,100,100 };
+	//	//Player
+	//SDL_Texture *playerTexture{ IMG_LoadTexture(renderer,"../../res/img/kintoun.png") };
+	//if (playerTexture == nullptr) throw "No s'han pogut crear les textures";
+	//SDL_Rect playerRect{ 0,0, 350/3, 189/3 };
+	//SDL_Rect playerTarget{ 0,0,100,100 };
 
 		// --- Animated Sprite --- (DIJOUS)
+
+	SDL_Texture *playerTexture{ IMG_LoadTexture(renderer,"../../res/img/sp01.png") };
+	SDL_Rect playerRect, playerPosition;
+	int textWidth, textHeight, frameWidth, frameHeight;
+	SDL_QueryTexture(playerTexture, NULL, NULL, &textWidth, &textHeight);
+	frameWidth = textWidth / 6;												//Depende del numero de subdivisiones del sprite (en este caso es de 6x1)
+	frameHeight = textHeight / 1;
+	playerPosition.x = playerPosition.y = 0;
+	playerRect.x = playerRect.y = 0;
+	playerPosition.h = playerRect.h = frameHeight;
+	playerPosition.w = playerRect.w = frameWidth;
+	int frameTime = 0;
+
 
 	// --- TEXT ---
 
@@ -97,7 +110,7 @@ int main(int, char*[]) {
 	SDL_FreeSurface(tmpSurf);
 	TTF_CloseFont(font2);
 
-	// --- AUDIO ---
+	// --- AUDIO --- //Mix_HaltMusic
 
 	if (
 		Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 1024) == -1) {
@@ -107,7 +120,8 @@ int main(int, char*[]) {
 	if (!soundtrack) throw "Unable to load the Mix_Music soundtrack";
 	Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
 	
-	int posX, posY;
+	int posX = 0;
+	int posY = 0;
 	bool click = false;
 
 	// --- GAME LOOP ---
@@ -121,29 +135,43 @@ int main(int, char*[]) {
 			case SDL_QUIT:		isRunning = false; break;
 			case SDL_KEYDOWN:	if (event.key.keysym.sym == SDLK_ESCAPE) isRunning = false; break;
 			case SDL_MOUSEMOTION: //playerRect.x = event.motion.x - playerRect.w/2; playerRect.y = event.motion.y - playerRect.h/2;
-							playerTarget.x = event.motion.x - playerRect.w / 2; playerTarget.y = event.motion.y - playerRect.h / 2;
+							//playerTarget.x = event.motion.x - playerRect.w / 2; playerTarget.y = event.motion.y - playerRect.h / 2;
 							posX = event.motion.x; posY = event.motion.y;
 							
 							break;
 
-			case SDL_MOUSEBUTTONDOWN: 
-				click = true;
-									  break;
+			case SDL_MOUSEBUTTONDOWN: if(event.button.button == SDL_BUTTON_LEFT) click = true;  break; //Pregunta si ha clickado con el boton izquierdo del mouse
 			default:;
 			}
 		}
 
 		// UPDATE
+		frameTime++;
+		if (FPS / frameTime <= 9) {
+			frameTime = 0;
+			playerRect.x += frameWidth;
+			if (playerRect.x >= textWidth) {
+				playerRect.x = 0;
+			}
+		}
+
 			//Interpolació vector moviment -- SMOOTH
-		playerRect.x += (playerTarget.x - playerRect.x) / 6;
-		playerRect.y += (playerTarget.y - playerRect.y) / 6;
+
+		//playerRect.x += (playerTarget.x - playerRect.x) / 6;
+		//playerRect.y += (playerTarget.y - playerRect.y) / 6;
+
+		//Mouse Click Event Update
 		if (click) {
-			if (in_rect(posX, posY, &textPlayMusicRect)) {
+			//Music Buttons
+
+			if (in_rect(posX, posY, &textPlayMusicRect)) { //Encima del boton Play Music
 				Mix_PlayMusic(soundtrack, -1);
 			}
-			if (in_rect(posX, posY, &textStopMusicRect)) {
-				Mix_PauseMusic();
+			if (in_rect(posX, posY, &textStopMusicRect)) { //Encima del boton Stop Music
+				
+				Mix_HaltMusic();
 			}
+
 		}
 		
 		
@@ -175,12 +203,10 @@ int main(int, char*[]) {
 		
 		
 			//Animated Sprite
-
-		
-		
 		
 
-		SDL_RenderCopy(renderer, playerTexture, nullptr, &playerRect);
+		//SDL_RenderCopy(renderer, playerTexture, nullptr, &playerRect);
+		SDL_RenderCopy(renderer, playerTexture, &playerRect, &playerPosition);
 		SDL_RenderPresent(renderer);
 
 	}
@@ -192,7 +218,7 @@ int main(int, char*[]) {
 	SDL_DestroyTexture(playMusicTexture2);
 	SDL_DestroyTexture(stopMusicTexture);
 	SDL_DestroyTexture(stopMusicTexture2);
-	SDL_DestroyTexture(playerTexture);	
+	//SDL_DestroyTexture(playerTexture);	
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 
