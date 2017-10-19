@@ -15,6 +15,8 @@ bool in_rect(int x, int y, struct SDL_Rect *r) {
 		(x < r->x + r->w) && (y < r->y + r->h);
 }
 
+bool onPlayMusic = false;
+bool onStopMusic = false;
 
 int main(int, char*[]) {
 
@@ -56,6 +58,7 @@ int main(int, char*[]) {
 
 	// --- TEXT ---
 
+		//Titol
 	TTF_Font *font{ TTF_OpenFont("../../res/ttf/saiyan.ttf",80) };
 	if (font == nullptr) throw "No es pot inicialitzar the TTF_Font";
 	SDL_Surface *tmpSurf{ TTF_RenderText_Blended(font,"My first SDL game", SDL_Color{255,150,0,255}) };
@@ -65,6 +68,7 @@ int main(int, char*[]) {
 	SDL_FreeSurface(tmpSurf);
 	TTF_CloseFont(font);
 
+		//PlayMusic1
 	TTF_Font *font2{ TTF_OpenFont("../../res/ttf/saiyan.ttf", 60) };
 	if (font == nullptr) throw "No es pot inicialitzar the TTF_Font";
 	SDL_Surface *tmpSurf2{ TTF_RenderText_Blended(font2,"Play Music", SDL_Color{ 35,250,0,255 }) };
@@ -72,12 +76,25 @@ int main(int, char*[]) {
 	SDL_Texture *playMusicTexture{ SDL_CreateTextureFromSurface(renderer, tmpSurf2) };
 	SDL_Rect textPlayMusicRect{ 260,275,tmpSurf2->w, tmpSurf2->h};
 	SDL_FreeSurface(tmpSurf2);
+		//PlayMusic2
+	SDL_Surface *tmpSurf5{ TTF_RenderText_Blended(font2,"Play Music", SDL_Color{ 0,0,255,255 }) };
+	if (tmpSurf == nullptr) throw "Unable to create the SDL text surface";
+	SDL_Texture *playMusicTexture2{ SDL_CreateTextureFromSurface(renderer, tmpSurf5) };
+	SDL_Rect textPlayMusicRect2{ 260,275,tmpSurf5->w, tmpSurf5->h };
+	SDL_FreeSurface(tmpSurf5);
 
+		//StopMusic
 	SDL_Surface *tmpSurf3{ TTF_RenderText_Blended(font2,"Stop Music", SDL_Color{ 255,15,0,255 }) };
 	if (tmpSurf == nullptr) throw "Unable to create the SDL text surface";
 	SDL_Texture *stopMusicTexture{ SDL_CreateTextureFromSurface(renderer, tmpSurf3) };
 	SDL_Rect textStopMusicRect{ 260,350,tmpSurf3->w, tmpSurf3->h };
 	SDL_FreeSurface(tmpSurf2);
+		//StopMusic2
+	SDL_Surface *tmpSurf4{ TTF_RenderText_Blended(font2,"Stop Music", SDL_Color{ 255,255,0,255 }) };
+	if (tmpSurf == nullptr) throw "Unable to create the SDL text surface";
+	SDL_Texture *stopMusicTexture2{ SDL_CreateTextureFromSurface(renderer, tmpSurf4) };
+	SDL_Rect textStopMusicRect2{ 260,350,tmpSurf4->w, tmpSurf4->h };
+	SDL_FreeSurface(tmpSurf4);
 	TTF_CloseFont(font);
 
 	// --- AUDIO ---
@@ -88,9 +105,7 @@ int main(int, char*[]) {
 	Mix_Music *soundtrack{ Mix_LoadMUS("../../res/au/mainTheme.mp3") };
 	if (!soundtrack) throw "Unable to load the Mix_Music soundtrack";
 	Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
-	//Mix_PlayMusic(soundtrack, -1);
-
-	//Mix_PlayMusic() - Mix_PlayingMusic() - Mix_PauseMusic() - Mix_ResumeMusic()
+	
 
 	// --- GAME LOOP ---
 	SDL_Event event;
@@ -119,6 +134,19 @@ int main(int, char*[]) {
 			//Interpolació vector moviment -- SMOOTH
 		playerRect.x += (playerTarget.x - playerRect.x) / 6;
 		playerRect.y += (playerTarget.y - playerRect.y) / 6;
+		
+		if (in_rect(playerRect.x, playerRect.y, &textPlayMusicRect) == true) {
+			onPlayMusic = true;
+		}
+		else {
+			onPlayMusic = false;
+		}
+		if (in_rect(playerRect.x, playerRect.y, &textStopMusicRect) == true) {
+			onStopMusic = true;
+		}
+		else {
+			onStopMusic = false;
+		}
 
 		// DRAW
 		SDL_RenderClear(renderer);
@@ -128,8 +156,18 @@ int main(int, char*[]) {
 
 		SDL_RenderCopy(renderer, bgTexture, nullptr, &bgRect);
 		SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
-		SDL_RenderCopy(renderer, playMusicTexture, nullptr, &textPlayMusicRect);
-		SDL_RenderCopy(renderer, stopMusicTexture, nullptr, &textStopMusicRect);
+		if (onPlayMusic) {
+			SDL_RenderCopy(renderer, playMusicTexture2, nullptr, &textPlayMusicRect2);
+		}
+		else {
+			SDL_RenderCopy(renderer, playMusicTexture, nullptr, &textPlayMusicRect);
+		}
+		if (onStopMusic) {
+			SDL_RenderCopy(renderer, stopMusicTexture2, nullptr, &textStopMusicRect2);
+		}
+		else {
+			SDL_RenderCopy(renderer, stopMusicTexture, nullptr, &textStopMusicRect);
+		}
 		SDL_RenderCopy(renderer, playerTexture, nullptr, &playerRect);
 		SDL_RenderPresent(renderer);
 
@@ -139,7 +177,9 @@ int main(int, char*[]) {
 	SDL_DestroyTexture(bgTexture);
 	SDL_DestroyTexture(textTexture);
 	SDL_DestroyTexture(playMusicTexture);
+	SDL_DestroyTexture(playMusicTexture2);
 	SDL_DestroyTexture(stopMusicTexture);
+	SDL_DestroyTexture(stopMusicTexture2);
 	SDL_DestroyTexture(playerTexture);	
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
